@@ -1,0 +1,3 @@
+complaint_id,source_channel,language,raw_text,normalized_text,department,urgency_score
+APV-2026-001,telegram,te,రోడ్లో పెద్ద గుంత ఉంది,Road lo pedda gunta undi,municipal,4
+APV-2026-002,web,tanglish,Current poindi 4 hours nundi,Current poindi 4 hours nundi,electricity,5

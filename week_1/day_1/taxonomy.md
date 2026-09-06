@@ -7,4 +7,4 @@
 5. Public health
 6. Police / law and order
 7. Roads / transport
-8. Sanitation / solid waste
+8. Sanitation / solid waste 
