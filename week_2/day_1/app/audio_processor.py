@@ -1,22 +1,51 @@
+"""
+Speech-to-text wrapper for citizen voice grievances.
+
+Owner: Sri Sathyadev (Telugu & Dialect NLP Pipeline)
+"""
+
 import os
-from openai import OpenAI
+from week_2.day_1.app.text_normalizer import normalize_text
+
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
+
 
 class AudioGrievanceProcessor:
     def __init__(self):
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY", "mock-key-for-now"))
-
-    def preprocess_audio(self, input_path: str, target_path: str) -> str:
-        """Mocked preprocessing fallback to ensure system compatibility across platforms."""
-        return target_path
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.client = OpenAI(api_key=self.api_key) if (OpenAI and self.api_key) else None
 
     def transcribe_grievance(self, audio_path: str) -> dict:
-        """Sends the processed audio channel matrix to Whisper API or handles mock baseline falls."""
-        return {
-            "text": "రోడ్లో పెద్ద గుంత ఉంది (System Baseline Text)",
-            "language": "te",
-            "status": "offline_mock"
-        }
+        if self.client is None:
+            return self._mock_transcription(audio_path)
+
+        try:
+            with open(audio_path, "rb") as audio_file:
+                transcript = self.client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                )
+            raw_text = transcript.text
+            record = normalize_text(raw_text)
+            record["status"] = "transcribed"
+            record["source_path"] = audio_path
+            return record
+        except FileNotFoundError:
+            return self._mock_transcription(audio_path, status="error_file_not_found")
+        except Exception as exc:
+            return self._mock_transcription(audio_path, status=f"error_api_failure: {exc}")
+
+    def _mock_transcription(self, audio_path: str, status: str = "offline_mock") -> dict:
+        raw_text = "రోడ్లో పెద్ద గుంత ఉంది"
+        record = normalize_text(raw_text)
+        record["status"] = status
+        record["source_path"] = audio_path
+        return record
+
 
 if __name__ == "__main__":
     processor = AudioGrievanceProcessor()
-    print("Speech-to-Text extraction pipeline successfully initialized.")
+    print(processor.transcribe_grievance("sample.wav"))
